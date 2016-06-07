@@ -263,7 +263,7 @@ func (t *ShareInfoCode) read(stub *shim.ChaincodeStub, args []string) ([]byte, e
 	var name, jsonResp, chaintype string
 	var err error
 
-	if len(args) != 1 {
+	if len(args) != 2 {
 		return nil, errors.New("incorrect number of args, expecting name of var to query")
 
 	}
