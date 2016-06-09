@@ -201,7 +201,8 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 
 	entres2new := make([]inquiry, len(entres2)+1)
 	//slice and take all data
-	if len(res2) > 0 {
+	//should be entity result2 (entres2)
+	if len(entres2) > 0 {
 		copy(entres2new, entres2[:len(entres2)])
 	}
 
