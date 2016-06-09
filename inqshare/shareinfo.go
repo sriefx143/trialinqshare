@@ -119,7 +119,10 @@ func (t *ShareInfoCode) Invoke(stub *shim.ChaincodeStub, function string, args [
 		return t.write(stub, args)
 	} else if function == "inquire" {
 		return t.inquire(stub, args)
+	} else if function == "writesingle" {
+		return t.writesingle(stub, args)
 	}
+
 	fmt.Println("invoke did not find func: " + function) //error
 
 	return nil, errors.New("Received unknown function invocation")
@@ -193,44 +196,57 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 	//indicator of which business is going well? future indicator of D&A analytics/analysis
 	//currently copy paste from above, refactor later
 	//get the current state data first
-	/*
-		entbytesofdata, entErr := stub.GetState("user_type1_4ba202182d" + "-consreq")
 
-		if entErr != nil {
-			return nil, errors.New(entErr.Error() + "-error reading state user-consreq")
-		}
+	entbytesofdata, entErr := stub.GetState("user_type1_4ba202182d" + "-consreq")
 
-		var entres2 = []inquiry{}
-		//unmarshal into struct array from json
-		err = json.Unmarshal(entbytesofdata, &entres2)
-		if err != nil {
-			return nil, errors.New(err.Error() + "-unable to unmarshall state data from entity state")
-		}
+	if entErr != nil {
+		return nil, errors.New(entErr.Error() + "-error reading state user-consreq")
+	}
 
-		entres2new := make([]inquiry, len(entres2)+1)
-		//slice and take all data
-		//should be entity result2 (entres2)
-		if len(entres2) > 0 {
-			copy(entres2new, entres2[:len(entres2)])
-		}
+	var entres2 = []inquiry{}
+	//unmarshal into struct array from json
+	err = json.Unmarshal(entbytesofdata, &entres2)
+	if err != nil {
+		return nil, errors.New(err.Error() + "-unable to unmarshall state data from entity state")
+	}
 
-		//add the new shareinfo data from user to the list
-		entres2new[len(entres2new)] = inquiry{EntityCode: "user_type1_4ba202182d", About: args[0]}
+	entres2new := make([]inquiry, len(entres2)+1)
+	//slice and take all data
+	//should be entity result2 (entres2)
+	if len(entres2) > 0 {
+		copy(entres2new, entres2[:len(entres2)])
+	}
 
-		//unmarshal into new json to store in ledger
-		bytestosave, er = json.Marshal(entres2new)
-		if er != nil {
-			return nil, errors.New(er.Error() + "-error writing inquiry queue to bytearray via marshalling")
-		}
+	//add the new shareinfo data from user to the list
+	entres2new[len(entres2new)] = inquiry{EntityCode: "user_type1_4ba202182d", About: args[0]}
 
-		//save to ledger state of entity as request queue
-		err = stub.PutState(res1.Withentity+"-consreq", bytestosave)
-		if err != nil {
-			return nil, errors.New(err.Error() + "-error writing to conseq state")
-		}
-	*/
+	//unmarshal into new json to store in ledger
+	bytestosave, er = json.Marshal(entres2new)
+	if er != nil {
+		return nil, errors.New(er.Error() + "-error writing inquiry queue to bytearray via marshalling")
+	}
+
+	//save to ledger state of entity as request queue
+	err = stub.PutState(res1.Withentity+"-consreq", bytestosave)
+	if err != nil {
+		return nil, errors.New(err.Error() + "-error writing to conseq state")
+	}
+
 	return nil, nil
 
+}
+
+func (t *ShareInfoCode) writesingle(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	var user = args[0]
+	var sharewith = args[1]
+	var mydata []string = strings.Split(args[2], "|")
+	var sharedon = args[3]
+	var res1 = inqinfoshare{sharewith, mydata, sharedon}
+
+	bytestosave, _ := json.Marshal(res1)
+	_ = stub.PutState(user+"-shareinfo", bytestosave)
+
+	return nil, nil
 }
 
 //remove data in chaincode then post with new state record
