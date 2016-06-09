@@ -143,7 +143,7 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 	}
 
 	user = args[0]
-	var res1 inqinfoshare
+	var res1 = inqinfoshare{}
 	err = json.Unmarshal([]byte(args[1]), &res1)
 	if err != nil {
 		return nil, err
@@ -192,7 +192,7 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 		return nil, errors.New("error reading state user-consreq")
 	}
 
-	var entres2 []inquiry
+	var entres2 = []inquiry{}
 	//unmarshal into struct array from json
 	err = json.Unmarshal(bytesofdata, &entres2)
 	if err != nil {
