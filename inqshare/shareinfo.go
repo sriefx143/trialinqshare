@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
@@ -143,8 +144,11 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 	}
 
 	user = args[0]
-	var res1 = inqinfoshare{}
-	err = json.Unmarshal([]byte(args[1]), &res1)
+	var sharewith = args[1]
+	var mydata []string = strings.Split(args[2], "|")
+	var sharedon = args[3]
+	var res1 = inqinfoshare{sharewith, mydata, sharedon}
+	err = json.Unmarshal([]byte(sharewith), &res1)
 	if err != nil {
 		return nil, errors.New(err.Error() + "-error loading input json into array from args1")
 	}
