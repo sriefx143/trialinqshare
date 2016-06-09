@@ -243,9 +243,9 @@ func (t *ShareInfoCode) writesingle(stub *shim.ChaincodeStub, args []string) ([]
 	var res1 = inqinfoshare{sharewith, mydata, sharedon}
 	var arrres1 = []inqinfoshare{res1}
 	bytestosave, _ := json.Marshal(arrres1)
-	_ = stub.PutState(user+"-shareinfo", bytestosave)
+	_ = stub.PutState(user+"-shareinfo", []byte("[{\"withentity\":\"porsche35-userid\",\"mydata\":[\"score3\",\"dec1003\"],\"sharedate\":\"2016-06-02\"}]"))
 
-	return nil, nil
+	return bytestosave, nil
 }
 
 //remove data in chaincode then post with new state record
