@@ -119,7 +119,7 @@ func (t *ShareInfoCode) Invoke(stub *shim.ChaincodeStub, function string, args [
 		return t.write(stub, args)
 	} else if function == "inquire" {
 		return t.inquire(stub, args)
-	} else if function == "writesingle" {
+	} else if function == "shareone" {
 		return t.writesingle(stub, args)
 	}
 
@@ -236,16 +236,16 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 }
 
 func (t *ShareInfoCode) writesingle(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+
 	var user = args[0]
 	var sharewith = args[1]
 	var mydata []string = strings.Split(args[2], "|")
 	var sharedon = args[3]
 	var res1 = inqinfoshare{sharewith, mydata, sharedon}
-	var arrres1 = []inqinfoshare{res1}
-	bytestosave, _ := json.Marshal(arrres1)
-	_ = stub.PutState(user+"-shareinfo", []byte("[{\"withentity\":\"porsche35-userid\",\"mydata\":[\"score3\",\"dec1003\"],\"sharedate\":\"2016-06-02\"}]"))
+	bytestostore, _ := json.Marshal(res1)
+	_ = stub.PutState(user+"-shareinfo", bytestostore)
 
-	return bytestosave, nil
+	return nil, nil
 }
 
 //remove data in chaincode then post with new state record
