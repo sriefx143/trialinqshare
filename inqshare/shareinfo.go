@@ -151,10 +151,9 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 	var mydata []string = strings.Split(args[2], "|")
 	var sharedon = args[3]
 	var res1 = inqinfoshare{sharewith, mydata, sharedon}
-	err = json.Unmarshal([]byte(sharewith), &res1)
-	if err != nil {
-		return nil, errors.New(err.Error() + "-error loading input json into array from args1")
-	}
+
+	bytestosave, _ := json.Marshal(res1)
+
 	fmt.Println(res1.Mydata)
 
 	//get the current state data first
@@ -164,7 +163,7 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 		return nil, errors.New("error reading state user-shareinfo")
 	}
 
-	var res2 []inqinfoshare
+	var res2 = []inqinfoshare{}
 	//unmarshal into struct array from json
 	err = json.Unmarshal(bytesofdata, &res2)
 	if err != nil {
@@ -180,7 +179,7 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 	res2new[len(res2)] = res1
 
 	//unmarshal into new json to store in ledger
-	bytestosave, er := json.Marshal(res2new)
+	bytestosave, er = json.Marshal(res2new)
 
 	if er != nil {
 		return nil, errors.New(er.Error() + "error marshalling res2new into byte array")
