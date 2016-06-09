@@ -117,7 +117,7 @@ func (t *ShareInfoCode) Invoke(stub *shim.ChaincodeStub, function string, args [
 	} else if function == "share" {
 		return t.write(stub, args)
 	} else if function == "inquire" {
-		return t.write(stub, args)
+		return t.inquire(stub, args)
 	}
 	fmt.Println("invoke did not find func: " + function) //error
 
@@ -137,8 +137,8 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 	var err error
 	fmt.Println("running write() function")
 
-	if len(args) != 2 {
-		return nil, errors.New("incorrect number of args, expecting 2. name of variable and value to set")
+	if len(args) != 1 {
+		return nil, errors.New("incorrect number of args, expecting 1. name of variable and value to set")
 
 	}
 
@@ -263,7 +263,7 @@ func (t *ShareInfoCode) read(stub *shim.ChaincodeStub, args []string) ([]byte, e
 	var name, jsonResp, chaintype string
 	var err error
 
-	if len(args) != 1 {
+	if len(args) != 2 {
 		return nil, errors.New("incorrect number of args, expecting name of var to query")
 
 	}
