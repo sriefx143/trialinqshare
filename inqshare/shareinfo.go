@@ -146,7 +146,7 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 	var res1 = inqinfoshare{}
 	err = json.Unmarshal([]byte(args[1]), &res1)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(err.Error() + "-error loading input json into array from args1")
 	}
 	fmt.Println(res1.Mydata)
 
@@ -161,7 +161,7 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 	//unmarshal into struct array from json
 	err = json.Unmarshal(bytesofdata, &res2)
 	if err != nil {
-		return nil, errors.New("unable to unmarshall state data")
+		return nil, errors.New(err.Error() + "unable to unmarshall state data")
 	}
 
 	res2new := make([]inqinfoshare, len(res2)+1)
@@ -175,49 +175,56 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 	//unmarshal into new json to store in ledger
 	bytestosave, er := json.Marshal(res2new)
 
+	if er != nil {
+		return nil, errors.New(er.Error() + "error marshalling res2new into byte array")
+	}
+
 	//save to ledger state
 	err = stub.PutState(user+"-shareinfo", bytestosave)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(er.Error() + "error storing state into shareinfo")
 	}
 
 	//do the same in entity ledger store where entity will read for inq requests to them
 	//indicator of which business is going well? future indicator of D&A analytics/analysis
 	//currently copy paste from above, refactor later
 	//get the current state data first
+	/*
+		entbytesofdata, entErr := stub.GetState("user_type1_4ba202182d" + "-consreq")
 
-	bytesofdata, er = stub.GetState(res1.Withentity + "-consreq")
+		if entErr != nil {
+			return nil, errors.New(entErr.Error() + "-error reading state user-consreq")
+		}
 
-	if er != nil {
-		return nil, errors.New("error reading state user-consreq")
-	}
+		var entres2 = []inquiry{}
+		//unmarshal into struct array from json
+		err = json.Unmarshal(entbytesofdata, &entres2)
+		if err != nil {
+			return nil, errors.New(err.Error() + "-unable to unmarshall state data from entity state")
+		}
 
-	var entres2 = []inquiry{}
-	//unmarshal into struct array from json
-	err = json.Unmarshal(bytesofdata, &entres2)
-	if err != nil {
-		return nil, errors.New("unable to unmarshall state data from entity state")
-	}
+		entres2new := make([]inquiry, len(entres2)+1)
+		//slice and take all data
+		//should be entity result2 (entres2)
+		if len(entres2) > 0 {
+			copy(entres2new, entres2[:len(entres2)])
+		}
 
-	entres2new := make([]inquiry, len(entres2)+1)
-	//slice and take all data
-	//should be entity result2 (entres2)
-	if len(entres2) > 0 {
-		copy(entres2new, entres2[:len(entres2)])
-	}
+		//add the new shareinfo data from user to the list
+		entres2new[len(entres2new)] = inquiry{EntityCode: "user_type1_4ba202182d", About: args[0]}
 
-	//add the new shareinfo data from user to the list
-	entres2new[len(entres2new)] = inquiry{res1.Withentity, args[0]}
+		//unmarshal into new json to store in ledger
+		bytestosave, er = json.Marshal(entres2new)
+		if er != nil {
+			return nil, errors.New(er.Error() + "-error writing inquiry queue to bytearray via marshalling")
+		}
 
-	//unmarshal into new json to store in ledger
-	bytestosave, er = json.Marshal(entres2new)
-
-	//save to ledger state of entity as request queue
-	err = stub.PutState(res1.Withentity+"-consreq", bytestosave)
-	if err != nil {
-		return nil, err
-	}
-
+		//save to ledger state of entity as request queue
+		err = stub.PutState(res1.Withentity+"-consreq", bytestosave)
+		if err != nil {
+			return nil, errors.New(err.Error() + "-error writing to conseq state")
+		}
+	*/
 	return nil, nil
 
 }
