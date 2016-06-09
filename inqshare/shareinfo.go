@@ -241,8 +241,8 @@ func (t *ShareInfoCode) writesingle(stub *shim.ChaincodeStub, args []string) ([]
 	var mydata []string = strings.Split(args[2], "|")
 	var sharedon = args[3]
 	var res1 = inqinfoshare{sharewith, mydata, sharedon}
-
-	bytestosave, _ := json.Marshal(res1)
+	var arrres1 = []inqinfoshare{res1}
+	bytestosave, _ := json.Marshal(arrres1)
 	_ = stub.PutState(user+"-shareinfo", bytestosave)
 
 	return nil, nil
