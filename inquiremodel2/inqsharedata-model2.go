@@ -168,50 +168,52 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 	var stringjsonin = string(bytestosave)
 
 	fmt.Println(stringjsonin)
-
-	//get the current state data first
-	bytesofdata, er := stub.GetState(user + "-shareinfo")
-
-	if er != nil {
-		return nil, errors.New("error reading state user-shareinfo")
-	}
-
-	var stringjsonstored = string(bytesofdata)
-
-	var joinedstring string = "-data-"
-	if len(stringjsonstored) != 0 {
-		joinedstring = stringjsonstored + "^" + stringjsonin
-	} else {
-		joinedstring = stringjsonin
-	}
-
 	/*
-		var res2 = []inqinfoshare{}
-		//unmarshal into struct array from json
-		err = json.Unmarshal(bytesofdata, &res2)
-		if err != nil {
-			return nil, errors.New(err.Error() + "unable to unmarshall state data")
-		}
-
-		res2new := make([]inqinfoshare, len(res2)+1)
-		if len(res2) > 0 {
-			copy(res2new, res2[:len(res2)])
-		}
-
-		//add the new shareinfo data from user to the list
-		res2new[len(res2)] = res1
-
-		//unmarshal into new json to store in ledger
-		bytestosave, er = json.Marshal(res2new)
+		//get the current state data first
+		bytesofdata, er := stub.GetState(user + "-shareinfo")
 
 		if er != nil {
-			return nil, errors.New(er.Error() + "error marshalling res2new into byte array")
+			return nil, errors.New("error reading state user-shareinfo")
 		}
 
-		//save to ledger state
-		err = stub.PutState(user+"-shareinfo", bytestosave)
+			var stringjsonstored = string(bytesofdata)
+
+
+				var joinedstring string
+				joinedstring = "-data-"
+				if len(stringjsonstored) != 0 {
+					joinedstring = stringjsonstored + "^" + stringjsonin
+				} else {
+					joinedstring = stringjsonin
+				}
+
+
+					var res2 = []inqinfoshare{}
+					//unmarshal into struct array from json
+					err = json.Unmarshal(bytesofdata, &res2)
+					if err != nil {
+						return nil, errors.New(err.Error() + "unable to unmarshall state data")
+					}
+
+					res2new := make([]inqinfoshare, len(res2)+1)
+					if len(res2) > 0 {
+						copy(res2new, res2[:len(res2)])
+					}
+
+					//add the new shareinfo data from user to the list
+					res2new[len(res2)] = res1
+
+					//unmarshal into new json to store in ledger
+					bytestosave, er = json.Marshal(res2new)
+
+					if er != nil {
+						return nil, errors.New(er.Error() + "error marshalling res2new into byte array")
+					}
+
+					//save to ledger state
+					err = stub.PutState(user+"-shareinfo", bytestosave)
 	*/
-	_ = stub.PutState(user+"-shareinfo", []byte(joinedstring))
+	_ = stub.PutState(user+"-shareinfo", bytestosave)
 	///if err != nil {
 	///	return nil, errors.New(er.Error() + "error storing state into shareinfo")
 	///}
