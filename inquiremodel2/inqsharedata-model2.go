@@ -178,7 +178,7 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 
 	var stringjsonstored = string(bytesofdata)
 
-	var joinedstring string
+	var joinedstring string = "-data-"
 	if len(stringjsonstored) != 0 {
 		joinedstring = stringjsonstored + "^" + stringjsonin
 	} else {
@@ -211,10 +211,10 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 		//save to ledger state
 		err = stub.PutState(user+"-shareinfo", bytestosave)
 	*/
-	err = stub.PutState(user+"-shareinfo", []byte(joinedstring))
-	if err != nil {
-		return nil, errors.New(er.Error() + "error storing state into shareinfo")
-	}
+	_ = stub.PutState(user+"-shareinfo", []byte(joinedstring))
+	///if err != nil {
+	///	return nil, errors.New(er.Error() + "error storing state into shareinfo")
+	///}
 
 	//do the same in entity ledger store where entity will read for inq requests to them
 	//indicator of which business is going well? future indicator of D&A analytics/analysis
