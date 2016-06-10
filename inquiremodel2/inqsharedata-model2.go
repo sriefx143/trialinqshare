@@ -148,26 +148,17 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 	//args0=username
 	//arg1=stateJSON [{"withentity":"porsche35-userid","mydata":["score3","dec1003"],"sharedate":"2016-06-02"}]
 
-	var user string
 	var err error
 	fmt.Println("running write() function")
 
-	if len(args) != 4 {
-		return nil, errors.New("incorrect number of args, expecting 4. name of variable and value to set")
-
-	}
-
-	user = args[0]
+	var user = args[0]
 	var sharewith = args[1]
 	var mydata []string = strings.Split(args[2], "|")
 	var sharedon = args[3]
 	var res1 = inqinfoshare{sharewith, mydata, sharedon}
+	bytestostore, _ := json.Marshal(res1)
+	_ = stub.PutState(user+"-shareinfo", bytestostore)
 
-	bytestosave, _ := json.Marshal(res1)
-
-	var stringjsonin = string(bytestosave)
-
-	fmt.Println(stringjsonin)
 	/*
 		//get the current state data first
 		bytesofdata, er := stub.GetState(user + "-shareinfo")
@@ -213,7 +204,7 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 					//save to ledger state
 					err = stub.PutState(user+"-shareinfo", bytestosave)
 	*/
-	_ = stub.PutState(user+"-shareinfo", bytestosave)
+
 	///if err != nil {
 	///	return nil, errors.New(er.Error() + "error storing state into shareinfo")
 	///}
