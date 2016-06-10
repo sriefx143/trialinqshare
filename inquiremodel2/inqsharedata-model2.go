@@ -152,8 +152,8 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 	var err error
 	fmt.Println("running write() function")
 
-	if len(args) != 1 {
-		return nil, errors.New("incorrect number of args, expecting 1. name of variable and value to set")
+	if len(args) != 4 {
+		return nil, errors.New("incorrect number of args, expecting 4. name of variable and value to set")
 
 	}
 
@@ -354,7 +354,7 @@ func (t *ShareInfoCode) inquire(stub *shim.ChaincodeStub, args []string) ([]byte
 	var name, jsonResp string
 	var err error
 
-	if len(args) != 2 {
+	if len(args) != 1 {
 		return nil, errors.New("incorrect number of args, expecting name of var to query")
 
 	}
