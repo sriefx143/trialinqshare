@@ -62,7 +62,8 @@ func (t *ShareInfoCode) Init(stub *shim.ChaincodeStub, function string, args []s
 		return nil, errors.New("required 1 argument, the chain user")
 	}
 	//inq self share
-	var inqs = []inqinfoshare{}
+	///var inqs = []inqinfoshare{}
+	var inqs = inqinfoshare{}
 	bytestowrite, er := json.Marshal(inqs)
 	if er != nil {
 		return nil, errors.New("error occured marshalling")
@@ -73,7 +74,8 @@ func (t *ShareInfoCode) Init(stub *shim.ChaincodeStub, function string, args []s
 	}
 
 	//inq request list
-	var myinqs = []inquiry{}
+	///var myinqs = []inquiry{}
+	var myinqs = inquiry{}
 	bytestowrite, er = json.Marshal(myinqs)
 	if er != nil {
 		return nil, errors.New("error occured marshalling my inquiries")
@@ -84,7 +86,8 @@ func (t *ShareInfoCode) Init(stub *shim.ChaincodeStub, function string, args []s
 	}
 
 	//state on my inqs done list on self-share parallel
-	var inqsharedone = []inqinfosharedone{}
+	///var inqsharedone = []inqinfosharedone{}
+	var inqsharedone = inqinfosharedone{}
 	bytestowrite, er = json.Marshal(inqsharedone)
 	if er != nil {
 		return nil, errors.New("error occured marshalling my inquiries")
@@ -95,7 +98,8 @@ func (t *ShareInfoCode) Init(stub *shim.ChaincodeStub, function string, args []s
 	}
 
 	//what inq req is complete and what was gotten
-	var myinqdone = []inquirydone{}
+	///var myinqdone = []inquirydone{}
+	var myinqdone = inquirydone{}
 	bytestowrite, er = json.Marshal(myinqdone)
 	if er != nil {
 		return nil, errors.New("error occured marshalling my inquiries")
@@ -121,6 +125,8 @@ func (t *ShareInfoCode) Invoke(stub *shim.ChaincodeStub, function string, args [
 		return t.inquire(stub, args)
 	} else if function == "shareone" {
 		return t.writesingle(stub, args)
+	} else if function == "inquireone" {
+		return t.inquireone(stub, args)
 	}
 
 	fmt.Println("invoke did not find func: " + function) //error
@@ -154,7 +160,9 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 
 	bytestosave, _ := json.Marshal(res1)
 
-	fmt.Println(res1.Mydata)
+	var stringjsonin = string(bytestosave)
+
+	fmt.Println(stringjsonin)
 
 	//get the current state data first
 	bytesofdata, er := stub.GetState(user + "-shareinfo")
@@ -163,30 +171,37 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 		return nil, errors.New("error reading state user-shareinfo")
 	}
 
-	var res2 = []inqinfoshare{}
-	//unmarshal into struct array from json
-	err = json.Unmarshal(bytesofdata, &res2)
-	if err != nil {
-		return nil, errors.New(err.Error() + "unable to unmarshall state data")
-	}
+	var stringjsonstored = string(bytesofdata)
 
-	res2new := make([]inqinfoshare, len(res2)+1)
-	if len(res2) > 0 {
-		copy(res2new, res2[:len(res2)])
-	}
+	var joinedstring = stringjsonstored + "^" + stringjsonin
 
-	//add the new shareinfo data from user to the list
-	res2new[len(res2)] = res1
+	/*
+		var res2 = []inqinfoshare{}
+		//unmarshal into struct array from json
+		err = json.Unmarshal(bytesofdata, &res2)
+		if err != nil {
+			return nil, errors.New(err.Error() + "unable to unmarshall state data")
+		}
 
-	//unmarshal into new json to store in ledger
-	bytestosave, er = json.Marshal(res2new)
+		res2new := make([]inqinfoshare, len(res2)+1)
+		if len(res2) > 0 {
+			copy(res2new, res2[:len(res2)])
+		}
 
-	if er != nil {
-		return nil, errors.New(er.Error() + "error marshalling res2new into byte array")
-	}
+		//add the new shareinfo data from user to the list
+		res2new[len(res2)] = res1
 
-	//save to ledger state
-	err = stub.PutState(user+"-shareinfo", bytestosave)
+		//unmarshal into new json to store in ledger
+		bytestosave, er = json.Marshal(res2new)
+
+		if er != nil {
+			return nil, errors.New(er.Error() + "error marshalling res2new into byte array")
+		}
+
+		//save to ledger state
+		err = stub.PutState(user+"-shareinfo", bytestosave)
+	*/
+	err = stub.PutState(user+"-shareinfo", []byte(joinedstring))
 	if err != nil {
 		return nil, errors.New(er.Error() + "error storing state into shareinfo")
 	}
@@ -196,37 +211,47 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 	//currently copy paste from above, refactor later
 	//get the current state data first
 
-	entbytesofdata, entErr := stub.GetState("user_type1_4ba202182d" + "-consreq")
+	entbytesofdata, entErr := stub.GetState(sharewith + "-consreq")
 
 	if entErr != nil {
 		return nil, errors.New(entErr.Error() + "-error reading state user-consreq")
 	}
+	var inqQStored = string(entbytesofdata)
+	var newinqitem = inquiry{EntityCode: "user_type1_4ba202182d", About: args[0]}
+	bytesofinq, _ := json.Marshal(newinqitem)
+	var newinqQstring = string(bytesofinq)
 
-	var entres2 = []inquiry{}
-	//unmarshal into struct array from json
-	err = json.Unmarshal(entbytesofdata, &entres2)
-	if err != nil {
-		return nil, errors.New(err.Error() + "-unable to unmarshall state data from entity state")
-	}
+	var combinedinq = inqQStored + newinqQstring
 
-	entres2new := make([]inquiry, len(entres2)+1)
-	//slice and take all data
-	//should be entity result2 (entres2)
-	if len(entres2) > 0 {
-		copy(entres2new, entres2[:len(entres2)])
-	}
+	/*
+		var entres2 = []inquiry{}
+		//unmarshal into struct array from json
+		err = json.Unmarshal(entbytesofdata, &entres2)
+		if err != nil {
+			return nil, errors.New(err.Error() + "-unable to unmarshall state data from entity state")
+		}
 
-	//add the new shareinfo data from user to the list
-	entres2new[len(entres2new)] = inquiry{EntityCode: "user_type1_4ba202182d", About: args[0]}
+		entres2new := make([]inquiry, len(entres2)+1)
+		//slice and take all data
+		//should be entity result2 (entres2)
+		if len(entres2) > 0 {
+			copy(entres2new, entres2[:len(entres2)])
+		}
 
-	//unmarshal into new json to store in ledger
-	bytestosave, er = json.Marshal(entres2new)
-	if er != nil {
-		return nil, errors.New(er.Error() + "-error writing inquiry queue to bytearray via marshalling")
-	}
+		//add the new shareinfo data from user to the list
+		entres2new[len(entres2new)] = inquiry{EntityCode: "user_type1_4ba202182d", About: args[0]}
 
-	//save to ledger state of entity as request queue
-	err = stub.PutState(res1.Withentity+"-consreq", bytestosave)
+		//unmarshal into new json to store in ledger
+		bytestosave, er = json.Marshal(entres2new)
+		if er != nil {
+			return nil, errors.New(er.Error() + "-error writing inquiry queue to bytearray via marshalling")
+		}
+
+		//save to ledger state of entity as request queue
+		err = stub.PutState(res1.Withentity+"-consreq", bytestosave)
+	*/
+
+	err = stub.PutState(res1.Withentity+"-consreq", []byte(combinedinq))
 	if err != nil {
 		return nil, errors.New(err.Error() + "-error writing to conseq state")
 	}
@@ -360,4 +385,14 @@ func (t *ShareInfoCode) inquire(stub *shim.ChaincodeStub, args []string) ([]byte
 
 	return inqsbytes, nil
 
+}
+
+func (t *ShareInfoCode) inquireone(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	//args[0] = user
+	//args[1]=inquiredon
+	var inquired = inqinfosharedone{args[0], time.Now().String()}
+	inqDoneBytes, _ := json.Marshal(inquired)
+	stub.PutState(args[1]+"-consinqnotify", inqDoneBytes)
+
+	return inqDoneBytes, nil
 }
