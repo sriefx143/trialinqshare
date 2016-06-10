@@ -63,48 +63,51 @@ func (t *ShareInfoCode) Init(stub *shim.ChaincodeStub, function string, args []s
 	}
 	//inq self share
 	///var inqs = []inqinfoshare{}
-	var inqs = inqinfoshare{}
-	bytestowrite, er := json.Marshal(inqs)
-	if er != nil {
-		return nil, errors.New("error occured marshalling")
-	}
-	err := stub.PutState(args[0]+"-shareinfo", bytestowrite)
+	///var inqs = inqinfoshare{}
+	///bytestowrite, er := json.Marshal(inqs)
+	///if er != nil {
+	///	return nil, errors.New("error occured marshalling")
+	///}
+	///err := stub.PutState(args[0]+"-shareinfo", bytestowrite)
+	err := stub.PutState(args[0]+"-shareinfo", []byte(""))
 	if err != nil {
 		return nil, errors.New("error occured:" + err.Error())
 	}
 
 	//inq request list
 	///var myinqs = []inquiry{}
-	var myinqs = inquiry{}
-	bytestowrite, er = json.Marshal(myinqs)
-	if er != nil {
-		return nil, errors.New("error occured marshalling my inquiries")
-	}
-	err = stub.PutState(args[0]+"-consinq", bytestowrite)
+	///var myinqs = inquiry{}
+	///bytestowrite, er = json.Marshal(myinqs)
+	///if er != nil {
+	///	return nil, errors.New("error occured marshalling my inquiries")
+	///}
+	err = stub.PutState(args[0]+"-consinq", []byte(""))
 	if err != nil {
 		return nil, errors.New("error occured:" + err.Error())
 	}
 
 	//state on my inqs done list on self-share parallel
 	///var inqsharedone = []inqinfosharedone{}
-	var inqsharedone = inqinfosharedone{}
-	bytestowrite, er = json.Marshal(inqsharedone)
-	if er != nil {
-		return nil, errors.New("error occured marshalling my inquiries")
-	}
-	err = stub.PutState(args[0]+"-inqdone", bytestowrite)
+	///var inqsharedone = inqinfosharedone{}
+	///bytestowrite, er = json.Marshal(inqsharedone)
+	///if er != nil {
+	///		return nil, errors.New("error occured marshalling my inquiries")
+	///}
+	///err = stub.PutState(args[0]+"-inqdone", bytestowrite)
+	err = stub.PutState(args[0]+"-inqdone", []byte(""))
 	if err != nil {
 		return nil, errors.New("error occured:" + err.Error())
 	}
 
 	//what inq req is complete and what was gotten
 	///var myinqdone = []inquirydone{}
-	var myinqdone = inquirydone{}
-	bytestowrite, er = json.Marshal(myinqdone)
-	if er != nil {
-		return nil, errors.New("error occured marshalling my inquiries")
-	}
-	err = stub.PutState(args[0]+"-consinqnotify", bytestowrite)
+	///var myinqdone = inquirydone{}
+	///bytestowrite, er = json.Marshal(myinqdone)
+	///if er != nil {
+	///	return nil, errors.New("error occured marshalling my inquiries")
+	///}
+	///err = stub.PutState(args[0]+"-consinqnotify", bytestowrite)
+	err = stub.PutState(args[0]+"-consinqnotify", []byte(""))
 	if err != nil {
 		return nil, errors.New("error occured:" + err.Error())
 	}
@@ -126,6 +129,8 @@ func (t *ShareInfoCode) Invoke(stub *shim.ChaincodeStub, function string, args [
 	} else if function == "shareone" {
 		return t.writesingle(stub, args)
 	} else if function == "inquireone" {
+		return t.inquireone(stub, args)
+	} else if function == "inquirydone" {
 		return t.inquireone(stub, args)
 	}
 
