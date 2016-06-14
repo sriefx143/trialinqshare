@@ -69,7 +69,7 @@ func (t *ShareInfoCode) Init(stub *shim.ChaincodeStub, function string, args []s
 	///	return nil, errors.New("error occured marshalling")
 	///}
 	///err := stub.PutState(args[0]+"-shareinfo", bytestowrite)
-	err := stub.PutState(args[0]+"-shareinfo", []byte(""))
+	err := stub.PutState(args[0]+"-shareinfo", []byte("INIT"))
 	if err != nil {
 		return nil, errors.New("error occured:" + err.Error())
 	}
@@ -81,7 +81,7 @@ func (t *ShareInfoCode) Init(stub *shim.ChaincodeStub, function string, args []s
 	///if er != nil {
 	///	return nil, errors.New("error occured marshalling my inquiries")
 	///}
-	err = stub.PutState(args[0]+"-consinq", []byte(""))
+	err = stub.PutState(args[0]+"-consinq", []byte("INIT"))
 	if err != nil {
 		return nil, errors.New("error occured:" + err.Error())
 	}
@@ -94,7 +94,7 @@ func (t *ShareInfoCode) Init(stub *shim.ChaincodeStub, function string, args []s
 	///		return nil, errors.New("error occured marshalling my inquiries")
 	///}
 	///err = stub.PutState(args[0]+"-inqdone", bytestowrite)
-	err = stub.PutState(args[0]+"-inqdone", []byte(""))
+	err = stub.PutState(args[0]+"-inqdone", []byte("INIT"))
 	if err != nil {
 		return nil, errors.New("error occured:" + err.Error())
 	}
@@ -107,7 +107,7 @@ func (t *ShareInfoCode) Init(stub *shim.ChaincodeStub, function string, args []s
 	///	return nil, errors.New("error occured marshalling my inquiries")
 	///}
 	///err = stub.PutState(args[0]+"-consinqnotify", bytestowrite)
-	err = stub.PutState(args[0]+"-consinqnotify", []byte(""))
+	err = stub.PutState(args[0]+"-consinqnotify", []byte("INIT"))
 	if err != nil {
 		return nil, errors.New("error occured:" + err.Error())
 	}
@@ -122,8 +122,14 @@ func (t *ShareInfoCode) Invoke(stub *shim.ChaincodeStub, function string, args [
 	// Handle different functions
 	if function == "init" { //initialize the chaincode state, used as reset
 		return t.Init(stub, "init", args)
-	} else if function == "share" {
-		return t.write(stub, args)
+	} else if function == "share-str" {
+		return t.write(stub, args) //string concat method
+	} else if function == "share-a" {
+		return t.writeA(stub, args) //write same thing back
+	} else if function == "share-b" {
+		return t.writeB(stub, args) //write json array thru reallocation of struct array
+	} else if function == "share-c" {
+		return t.writeC(stub, args) //write static json array from struct array
 	} else if function == "inquire" {
 		return t.inquire(stub, args)
 	} else if function == "shareone" {
@@ -144,6 +150,7 @@ func (t *ShareInfoCode) inituser(stub *shim.ChaincodeStub, args []string) ([]byt
 	return nil, nil
 }
 
+//write with string contact method
 func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 	//args0=username
 	//arg1=stateJSON [{"withentity":"porsche35-userid","mydata":["score3","dec1003"],"sharedate":"2016-06-02"}]
@@ -157,62 +164,11 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 	var sharedon = args[3]
 	var res1 = inqinfoshare{sharewith, mydata, sharedon}
 	bytestostore, _ := json.Marshal(res1)
-	_ = stub.PutState(user+"-shareinfo", bytestostore)
 
-	/*
-		//get the current state data first
-		bytesofdata, er := stub.GetState(user + "-shareinfo")
+	bytesofdata, _ := stub.GetState(user + "-shareinfo")
 
-		if er != nil {
-			return nil, errors.New("error reading state user-shareinfo")
-		}
-
-			var stringjsonstored = string(bytesofdata)
-
-
-				var joinedstring string
-				joinedstring = "-data-"
-				if len(stringjsonstored) != 0 {
-					joinedstring = stringjsonstored + "^" + stringjsonin
-				} else {
-					joinedstring = stringjsonin
-				}
-
-
-					var res2 = []inqinfoshare{}
-					//unmarshal into struct array from json
-					err = json.Unmarshal(bytesofdata, &res2)
-					if err != nil {
-						return nil, errors.New(err.Error() + "unable to unmarshall state data")
-					}
-
-					res2new := make([]inqinfoshare, len(res2)+1)
-					if len(res2) > 0 {
-						copy(res2new, res2[:len(res2)])
-					}
-
-					//add the new shareinfo data from user to the list
-					res2new[len(res2)] = res1
-
-					//unmarshal into new json to store in ledger
-					bytestosave, er = json.Marshal(res2new)
-
-					if er != nil {
-						return nil, errors.New(er.Error() + "error marshalling res2new into byte array")
-					}
-
-					//save to ledger state
-					err = stub.PutState(user+"-shareinfo", bytestosave)
-	*/
-
-	///if err != nil {
-	///	return nil, errors.New(er.Error() + "error storing state into shareinfo")
-	///}
-
-	//do the same in entity ledger store where entity will read for inq requests to them
-	//indicator of which business is going well? future indicator of D&A analytics/analysis
-	//currently copy paste from above, refactor later
-	//get the current state data first
+	var storedata = string(bytesofdata) + "^" + string(bytestostore)
+	_ = stub.PutState(user+"-shareinfo", []byte(storedata))
 
 	entbytesofdata, entErr := stub.GetState(sharewith + "-consreq")
 
@@ -231,34 +187,6 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 		combinedinq = newinqQstring
 	}
 
-	/*
-		var entres2 = []inquiry{}
-		//unmarshal into struct array from json
-		err = json.Unmarshal(entbytesofdata, &entres2)
-		if err != nil {
-			return nil, errors.New(err.Error() + "-unable to unmarshall state data from entity state")
-		}
-
-		entres2new := make([]inquiry, len(entres2)+1)
-		//slice and take all data
-		//should be entity result2 (entres2)
-		if len(entres2) > 0 {
-			copy(entres2new, entres2[:len(entres2)])
-		}
-
-		//add the new shareinfo data from user to the list
-		entres2new[len(entres2new)] = inquiry{EntityCode: "user_type1_4ba202182d", About: args[0]}
-
-		//unmarshal into new json to store in ledger
-		bytestosave, er = json.Marshal(entres2new)
-		if er != nil {
-			return nil, errors.New(er.Error() + "-error writing inquiry queue to bytearray via marshalling")
-		}
-
-		//save to ledger state of entity as request queue
-		err = stub.PutState(res1.Withentity+"-consreq", bytestosave)
-	*/
-
 	err = stub.PutState(res1.Withentity+"-consreq", []byte(combinedinq))
 	if err != nil {
 		return nil, errors.New(err.Error() + "-error writing to conseq state")
@@ -268,6 +196,138 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 
 }
 
+//try to write samething back to state
+func (t *ShareInfoCode) writeA(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	//args0=username
+	//arg1=stateJSON [{"withentity":"porsche35-userid","mydata":["score3","dec1003"],"sharedate":"2016-06-02"}]
+
+	var user = args[0]
+	var sharewith = args[1]
+
+	//var storedata = string(bytesofdata) + "^" + string(bytestostore)
+	storeddata, _ := stub.GetState(user + "-shareinfo")
+	_ = stub.PutState(user+"-shareinfo", storeddata)
+
+	bytesofinq, _ := stub.GetState(sharewith + "-consreq")
+	_ = stub.PutState(sharewith+"-consreq", bytesofinq)
+
+	return nil, nil
+
+}
+
+//try to write struct as json array
+func (t *ShareInfoCode) writeB(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	//args0=username
+	//arg1=stateJSON [{"withentity":"porsche35-userid","mydata":["score3","dec1003"],"sharedate":"2016-06-02"}]
+
+	var err error
+	fmt.Println("running write() function")
+
+	var user = args[0]
+	var sharewith = args[1]
+	var mydata []string = strings.Split(args[2], "|")
+	var sharedon = args[3]
+	var res1 = inqinfoshare{sharewith, mydata, sharedon}
+
+	//get the current state data first
+	bytesofdata, _ := stub.GetState(args[0] + "-shareinfo")
+	var res2 = []inqinfoshare{}
+	//unmarshal into struct array from json
+	err = json.Unmarshal(bytesofdata, &res2)
+	if err != nil {
+		return nil, errors.New(err.Error() + "unable to unmarshall state data")
+	}
+
+	res2new := make([]inqinfoshare, len(res2)+1)
+	if len(res2) > 0 {
+		copy(res2new, res2[:len(res2)])
+	}
+
+	//add the new shareinfo data from user to the list
+	res2new[len(res2)] = res1
+
+	//unmarshal into new json to store in ledger
+	bytestosave, _ := json.Marshal(res2new)
+
+	//save to ledger state
+	err = stub.PutState(user+"-shareinfo", bytestosave)
+
+	///if err != nil {
+	///	return nil, errors.New(er.Error() + "error storing state into shareinfo")
+	///}
+
+	//do the same in entity ledger store where entity will read for inq requests to them
+	//indicator of which business is going well? future indicator of D&A analytics/analysis
+	//currently copy paste from above, refactor later
+	//get the current state data first
+
+	entbytesofdata, entErr := stub.GetState(sharewith + "-consreq")
+
+	if entErr != nil {
+		return nil, errors.New(entErr.Error() + "-error reading state user-consreq")
+	}
+
+	var newinqitem = inquiry{EntityCode: sharewith, About: args[0]}
+
+	var entres2 = []inquiry{}
+	//unmarshal into struct array from json
+	err = json.Unmarshal(entbytesofdata, &entres2)
+	if err != nil {
+		return nil, errors.New(err.Error() + "-unable to unmarshall state data from entity state")
+	}
+
+	entres2new := make([]inquiry, len(entres2)+1)
+	//slice and take all data
+	//should be entity result2 (entres2)
+	if len(entres2) > 0 {
+		copy(entres2new, entres2[:len(entres2)])
+	}
+
+	//add the new shareinfo data from user to the list
+	entres2new[len(entres2new)] = newinqitem
+
+	//unmarshal into new json to store in ledger
+	bytestosave, _ = json.Marshal(entres2new)
+
+	//save to ledger state of entity as request queue
+	err = stub.PutState(sharewith+"-consreq", bytestosave)
+
+	if err != nil {
+		return nil, errors.New(err.Error() + "-error writing to conseq state")
+	}
+
+	return nil, nil
+
+}
+
+//write statically struct array
+func (t *ShareInfoCode) writeC(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	//args0=username
+	//arg1=stateJSON [{"withentity":"porsche35-userid","mydata":["score3","dec1003"],"sharedate":"2016-06-02"}]
+
+	var user = args[0]
+	var sharewith = args[1]
+	var mydata []string = strings.Split(args[2], "|")
+	var sharedon = args[3]
+	var r1 = inqinfoshare{sharewith, mydata, sharedon}
+	var r2 = inqinfoshare{sharewith, mydata, sharedon}
+	var res1 [2]inqinfoshare
+	res1[0] = r1
+	res1[1] = r2
+	bytestostore11, _ := json.Marshal(res1)
+	_ = stub.PutState(user+"-shareinfo", bytestostore11)
+
+	//var storedata = string(bytesofdata) + "^" + string(bytestostore)
+	var inqarr [2]inquiry
+	inqarr[0] = inquiry{sharewith, args[0]}
+	inqarr[1] = inquiry{sharewith, args[0] + "--1"}
+
+	bytestostore22, _ := json.Marshal(inqarr)
+	_ = stub.PutState(sharewith+"-consreq", bytestostore22)
+
+	return nil, nil
+
+}
 func (t *ShareInfoCode) writesingle(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 
 	var user = args[0]
