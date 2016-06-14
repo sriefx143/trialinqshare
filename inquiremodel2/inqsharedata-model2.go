@@ -81,7 +81,7 @@ func (t *ShareInfoCode) Init(stub *shim.ChaincodeStub, function string, args []s
 	if er != nil {
 		return nil, errors.New("error occured marshalling my inquiries")
 	}
-	///err = stub.PutState(args[0]+"-consinq", []byte("INIT"))
+	err = stub.PutState(args[0]+"-consinq", []byte("INIT"))
 	///if err != nil {
 	///	return nil, errors.New("error occured:" + err.Error())
 	///}
@@ -93,7 +93,7 @@ func (t *ShareInfoCode) Init(stub *shim.ChaincodeStub, function string, args []s
 	if er != nil {
 		return nil, errors.New("error occured marshalling my inquiries")
 	}
-	err = stub.PutState(args[0]+"-inqdone", bytestowrite)
+	//err = stub.PutState(args[0]+"-inqdone", bytestowrite)
 	err = stub.PutState(args[0]+"-inqdone", []byte("INIT"))
 	if err != nil {
 		return nil, errors.New("error occured:" + err.Error())
@@ -115,6 +115,16 @@ func (t *ShareInfoCode) Init(stub *shim.ChaincodeStub, function string, args []s
 	return nil, nil
 }
 
+func (t *ShareInfoCode) InitD(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
+
+	stub.PutState(args[0]+"-shareinfo", []byte(""))
+	stub.PutState(args[0]+"-consinq", []byte(""))
+	stub.PutState(args[0]+"-inqdone", []byte(""))
+	stub.PutState(args[0]+"-consinqnotify", []byte(""))
+
+	return nil, nil
+}
+
 // Invoke is our entry point to invoke a chaincode function
 func (t *ShareInfoCode) Invoke(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
 	fmt.Println("invoke is running " + function)
@@ -130,6 +140,8 @@ func (t *ShareInfoCode) Invoke(stub *shim.ChaincodeStub, function string, args [
 		return t.writeB(stub, args) //write json array thru reallocation of struct array
 	} else if function == "share-c" {
 		return t.writeC(stub, args) //write static json array from struct array
+	} else if function == "share-d" {
+		return t.writeD(stub, args) //write static json array from struct array
 	} else if function == "inquire" {
 		return t.inquire(stub, args)
 	} else if function == "shareone" {
@@ -327,6 +339,23 @@ func (t *ShareInfoCode) writeC(stub *shim.ChaincodeStub, args []string) ([]byte,
 	return nil, nil
 
 }
+func (t *ShareInfoCode) writeD(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+
+	var user = args[0]
+	var sharewith = args[1]
+	var mydata string = args[2]
+	var sharedon = args[3]
+	var datastring string = sharewith + ",[" + mydata + "]," + sharedon
+	storeddatastring, _ := stub.GetState(user + "-shareinfo")
+	if len(string(storeddatastring)) > 0 {
+		datastring = string(storeddatastring) + "^" + datastring
+	}
+
+	_ = stub.PutState(user+"-shareinfo", []byte(datastring))
+
+	return nil, nil
+}
+
 func (t *ShareInfoCode) writesingle(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 
 	var user = args[0]
