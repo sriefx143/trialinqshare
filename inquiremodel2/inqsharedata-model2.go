@@ -238,20 +238,24 @@ func (t *ShareInfoCode) writeB(stub *shim.ChaincodeStub, args []string) ([]byte,
 		return nil, errors.New(err.Error() + "unable to unmarshall state data")
 	}
 
-	res2new := make([]inqinfoshare, len(res2)+1)
-	if len(res2) > 0 {
-		copy(res2new, res2[:len(res2)])
+	if string(bytesofdata) != "INIT" {
+		res2new := make([]inqinfoshare, len(res2)+1)
+		if len(res2) > 0 {
+			copy(res2new, res2[:len(res2)])
+		}
+
+		//add the new shareinfo data from user to the list
+		res2new[len(res2)] = res1
+
+		//unmarshal into new json to store in ledger
+		bytestosave, _ := json.Marshal(res2new)
+
+		//save to ledger state
+		err = stub.PutState(user+"-shareinfo", bytestosave)
+	} else {
+		bytestoputinshare, _ := json.Marshal(res1)
+		_ = stub.PutState(user+"-shareinfo", bytestoputinshare)
 	}
-
-	//add the new shareinfo data from user to the list
-	res2new[len(res2)] = res1
-
-	//unmarshal into new json to store in ledger
-	bytestosave, _ := json.Marshal(res2new)
-
-	//save to ledger state
-	err = stub.PutState(user+"-shareinfo", bytestosave)
-
 	///if err != nil {
 	///	return nil, errors.New(er.Error() + "error storing state into shareinfo")
 	///}
@@ -266,31 +270,35 @@ func (t *ShareInfoCode) writeB(stub *shim.ChaincodeStub, args []string) ([]byte,
 	if entErr != nil {
 		return nil, errors.New(entErr.Error() + "-error reading state user-consreq")
 	}
-
 	var newinqitem = inquiry{EntityCode: sharewith, About: args[0]}
 
-	var entres2 = []inquiry{}
-	//unmarshal into struct array from json
-	err = json.Unmarshal(entbytesofdata, &entres2)
-	if err != nil {
-		return nil, errors.New(err.Error() + "-unable to unmarshall state data from entity state")
+	if string(entbytesofdata) != "INIT" {
+
+		var entres2 = []inquiry{}
+		//unmarshal into struct array from json
+		err = json.Unmarshal(entbytesofdata, &entres2)
+		if err != nil {
+			return nil, errors.New(err.Error() + "-unable to unmarshall state data from entity state")
+		}
+
+		entres2new := make([]inquiry, len(entres2)+1)
+		//slice and take all data
+		//should be entity result2 (entres2)
+		if len(entres2) > 0 {
+			copy(entres2new, entres2[:len(entres2)])
+		}
+
+		//add the new shareinfo data from user to the list
+		entres2new[len(entres2new)] = newinqitem
+
+		//unmarshal into new json to store in ledger
+		bytestosave, _ := json.Marshal(entres2new)
+		_ = stub.PutState(sharewith+"-consreq", bytestosave)
+	} else {
+		bytestosave, _ := json.Marshal(newinqitem)
+		_ = stub.PutState(sharewith+"-consreq", bytestosave)
 	}
-
-	entres2new := make([]inquiry, len(entres2)+1)
-	//slice and take all data
-	//should be entity result2 (entres2)
-	if len(entres2) > 0 {
-		copy(entres2new, entres2[:len(entres2)])
-	}
-
-	//add the new shareinfo data from user to the list
-	entres2new[len(entres2new)] = newinqitem
-
-	//unmarshal into new json to store in ledger
-	bytestosave, _ = json.Marshal(entres2new)
-
 	//save to ledger state of entity as request queue
-	err = stub.PutState(sharewith+"-consreq", bytestosave)
 
 	if err != nil {
 		return nil, errors.New(err.Error() + "-error writing to conseq state")
