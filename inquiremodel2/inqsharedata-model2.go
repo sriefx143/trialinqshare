@@ -154,6 +154,8 @@ func (t *ShareInfoCode) Invoke(stub *shim.ChaincodeStub, function string, args [
 		return t.inquireD(stub, args)
 	} else if function == "inquirydone" {
 		return t.inquireone(stub, args)
+	} else if function == "clearqueue" {
+		return t.clearQueue(stub, args)
 	}
 
 	fmt.Println("invoke did not find func: " + function) //error
