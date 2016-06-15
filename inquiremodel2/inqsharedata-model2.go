@@ -132,6 +132,8 @@ func (t *ShareInfoCode) Invoke(stub *shim.ChaincodeStub, function string, args [
 	// Handle different functions
 	if function == "init" { //initialize the chaincode state, used as reset
 		return t.Init(stub, "init", args)
+	} else if function == "initd" { //initialize the chaincode state, used as reset
+		return t.InitD(stub, "initD", args)
 	} else if function == "share-str" {
 		return t.write(stub, args) //string concat method
 	} else if function == "share-a" {
@@ -148,6 +150,8 @@ func (t *ShareInfoCode) Invoke(stub *shim.ChaincodeStub, function string, args [
 		return t.writesingle(stub, args)
 	} else if function == "inquireone" {
 		return t.inquireone(stub, args)
+	} else if function == "inquired" {
+		return t.inquireD(stub, args)
 	} else if function == "inquirydone" {
 		return t.inquireone(stub, args)
 	}
@@ -353,6 +357,16 @@ func (t *ShareInfoCode) writeD(stub *shim.ChaincodeStub, args []string) ([]byte,
 
 	_ = stub.PutState(user+"-shareinfo", []byte(datastring))
 
+	var entityqueue = sharewith + "," + user
+	storedqueue, _ := stub.GetState(sharewith + "-consinq")
+
+	if len(string(storedqueue)) > 0 {
+		var newinqQ = string(storedqueue) + "^" + entityqueue
+		_ = stub.PutState(sharewith+"-consinq", []byte(newinqQ))
+	} else {
+		_ = stub.PutState(sharewith+"-consinq", []byte(entityqueue))
+	}
+
 	return nil, nil
 }
 
@@ -497,4 +511,22 @@ func (t *ShareInfoCode) inquireone(stub *shim.ChaincodeStub, args []string) ([]b
 	stub.PutState(args[1]+"-consinqnotify", inqDoneBytes)
 
 	return inqDoneBytes, nil
+}
+func (t *ShareInfoCode) inquireD(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	//args[0] = user
+	//args[1]=inquiredon
+	var inquired string = args[0] + "," + time.Now().String()
+
+	_ = stub.PutState(args[1]+"-consinqnotify", []byte(inquired))
+
+	return nil, nil
+}
+
+func (t *ShareInfoCode) clearQueue(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	//args[0] = user
+
+	//use it as state transition, not a delete for now...
+	_ = stub.PutState(args[0]+"-consinq", []byte(""))
+
+	return nil, nil
 }
