@@ -184,10 +184,36 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 	bytestostore, _ := json.Marshal(res1)
 
 	bytesofdata, _ := stub.GetState(user + "-shareinfo")
+	var newItemsString string
+	if len(args[4]) != 0 {
+		var storedString string = args[4]
+		var arrStored []string = strings.Split(storedString, "^")
+		var arrlen int = len(arrStored)
+		var aridx int = 0
+		for aridx = 0; aridx < arrlen; aridx++ {
+			var iis inqinfoshare
+			_ = json.Unmarshal([]byte(arrStored[aridx]), &iis)
+			//check if this item was marked for deletion
+			if iis.Withentity == sharewith {
+				//now delete that item from the list
+			} else {
+				//put in simple if ... else instead of other operators just to be easy and obvious.
+				if len(newItemsString) != 0 {
+					newItemsString = newItemsString + "^" + arrStored[aridx]
+				} else {
+					newItemsString = arrStored[aridx]
+				}
 
-	var storedata = string(bytesofdata) + "^" + string(bytestostore)
-	_ = stub.PutState(user+"-shareinfo", []byte(storedata))
+			}
 
+			_ = stub.PutState(user+"-shareinfo", []byte(newItemsString))
+		}
+
+	} else {
+
+		var storedata = string(bytesofdata) + "^" + string(bytestostore)
+		_ = stub.PutState(user+"-shareinfo", []byte(storedata))
+	}
 	entbytesofdata, entErr := stub.GetState(sharewith + "-consreq")
 
 	if entErr != nil {
@@ -529,6 +555,44 @@ func (t *ShareInfoCode) clearQueue(stub *shim.ChaincodeStub, args []string) ([]b
 
 	//use it as state transition, not a delete for now...
 	_ = stub.PutState(args[0]+"-consinq", []byte(""))
+
+	return nil, nil
+}
+
+//Credit Report, Score
+//Preferred Credit Card
+//Name/Address/Phone
+//Employment record
+//Passport Data
+//Healthcare data (something simple)
+//Auto Insurance Policy
+
+type ConsumerShareData struct {
+	CreditReport        string `json:"creditreport"`
+	Score               string `json:"score"`
+	PreferredCreditCard string `json:"creditcard"`
+	NameAddressPhone    string `json:"nameaddrphone"`
+	EmploymentRecord    string `json:"employment"`
+	PassportData        string `json:"passport"`
+	HealthcareData      string `json:"health"`
+	AutoInsurancePolicy string `json:"autopolicy"`
+}
+
+func (t *ShareInfoCode) consumerdatashare(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+
+	//args3= score
+	//arg4=report
+	//arg5=creditcard
+	//arg6=name,add,phone
+	//arg7=employment
+	//arg8=passport
+	//arg9=healthdata
+	//arg10=auto insurance
+
+	sdata := ConsumerShareData{Score: args[3], CreditReport: args[4], PreferredCreditCard: args[5], NameAddressPhone: args[6], EmploymentRecord: args[7], PassportData: args[8], HealthcareData: args[9], AutoInsurancePolicy: args[10]}
+
+	sdatabytes, _ := json.Marshal(sdata)
+	_ = stub.PutState(args[1]+"-"+args[2], sdatabytes)
 
 	return nil, nil
 }
