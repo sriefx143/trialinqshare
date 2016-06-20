@@ -209,8 +209,8 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 				newItemsString = newItemsString + "^" + string(bytestostore)
 			}
 
-			_ = stub.PutState(user+"-shareinfo", []byte(newItemsString))
 		}
+		_ = stub.PutState(user+"-shareinfo", []byte(newItemsString))
 
 	} else {
 
