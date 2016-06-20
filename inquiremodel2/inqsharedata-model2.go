@@ -186,7 +186,7 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 	bytesofdata, _ := stub.GetState(user + "-shareinfo")
 	var newItemsString string
 	if len(args[4]) != 0 {
-		var storedString string = args[4]
+		var storedString string = string(bytestostore)
 		var arrStored []string = strings.Split(storedString, "^")
 		var arrlen int = len(arrStored)
 		var aridx int = 0
@@ -204,6 +204,9 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 					newItemsString = arrStored[aridx]
 				}
 
+			}
+			if args[4] == "U" {
+				newItemsString = newItemsString + "^" + string(bytestostore)
 			}
 
 			_ = stub.PutState(user+"-shareinfo", []byte(newItemsString))
