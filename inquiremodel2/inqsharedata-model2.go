@@ -214,7 +214,13 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 
 	} else {
 
-		var storedata = string(bytesofdata) + "^" + string(bytestostore)
+		var storedata string
+		if len(string(bytesofdata)) != 0 {
+			storedata = string(bytesofdata) + "^" + string(bytestostore)
+		} else {
+			storedata = string(bytestostore)
+		}
+
 		_ = stub.PutState(user+"-shareinfo", []byte(storedata))
 	}
 	entbytesofdata, entErr := stub.GetState(sharewith + "-consreq")
