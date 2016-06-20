@@ -191,10 +191,10 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 		var arrlen int = len(arrStored)
 		var aridx int = 0
 		for aridx = 0; aridx < arrlen; aridx++ {
-			var iis inqinfoshare
-			_ = json.Unmarshal([]byte(arrStored[aridx]), &iis)
+			//var iis inqinfoshare
+			//_ = json.Unmarshal([]byte(arrStored[aridx]), &iis)
 			//check if this item was marked for deletion
-			if iis.Withentity == sharewith {
+			if strings.Contains(arrStored[aridx], sharewith) {
 				//now delete that item from the list
 			} else {
 				//put in simple if ... else instead of other operators just to be easy and obvious.
