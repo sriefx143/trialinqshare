@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
@@ -86,7 +87,7 @@ func (t *votingcode) Query(stub *shim.ChaincodeStub, function string, args []str
 	} else if function == "voteresult" {
 		return t.getresults(stub, args)
 	} else if function == "read" {
-		r, _ := stub.GetState(args[0])
+		r, _ := stub.GetState(strings.Replace(args[0], " ", "_", -1))
 		return r, nil
 	}
 
@@ -117,11 +118,11 @@ func (t *votingcode) vote(stub *shim.ChaincodeStub, function string, args []stri
 		for a := 0; a < len(votesstruct); a++ {
 			if votesstruct[a].Candidate == args[1] {
 				votesstruct[a].Votes = votesstruct[a].Votes + 1
-				storedVal, _ := stub.GetState(args[1])
+				storedVal, _ := stub.GetState(strings.Replace(args[1], " ", "_", -1))
 				if len(string(storedVal)) > 0 {
 					val, _ := strconv.Atoi(string(storedVal))
 					val++
-					stub.PutState(args[1], []byte(strconv.Itoa(val)))
+					stub.PutState(strings.Replace(args[1], " ", "_", -1), []byte(strconv.Itoa(val)))
 				}
 				break
 			}
