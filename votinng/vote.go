@@ -82,6 +82,8 @@ func (t *votingcode) Query(stub *shim.ChaincodeStub, function string, args []str
 	if function == "dummy_query" { //read a variable
 		fmt.Println("hi there " + function) //error
 		return nil, nil
+	} else if function == "voteresult" {
+		return t.getresults(stub, args)
 	}
 
 	fmt.Println("query did not find func: " + function) //error
