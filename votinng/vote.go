@@ -85,6 +85,9 @@ func (t *votingcode) Query(stub *shim.ChaincodeStub, function string, args []str
 		return nil, nil
 	} else if function == "voteresult" {
 		return t.getresults(stub, args)
+	} else if function == "read" {
+		r, _ := stub.GetState(args[0])
+		return r, nil
 	}
 
 	fmt.Println("query did not find func: " + function) //error
@@ -228,6 +231,7 @@ func resetPropArray(inarray []proposition, newelement proposition) []proposition
 func (t *votingcode) getresults(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 
 	barr, _ := stub.GetState("votetype")
+
 	if string(barr) == "G" {
 		votesbytes, err := stub.GetState("candidates")
 		var votesstruct []candidates
