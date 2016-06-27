@@ -152,9 +152,9 @@ func (t *votingcode) vote(stub *shim.ChaincodeStub, function string, args []stri
 				if len(string(storedVal)) > 0 {
 					val, _ := strconv.Atoi(string(storedVal))
 					val++
-					stub.PutState(args[1]+"-"+args[2], []byte(strconv.Itoa(val)))
+					stub.PutState(strings.Replace(args[1], " ", "_", -1)+"-"+args[2], []byte(strconv.Itoa(val)))
 				} else {
-					stub.PutState(args[1]+"-"+args[2], []byte(strconv.Itoa(1)))
+					stub.PutState(strings.Replace(args[1], " ", "_", -1)+"-"+args[2], []byte(strconv.Itoa(1)))
 				}
 				break
 			}
@@ -243,7 +243,7 @@ func (t *votingcode) getresults(stub *shim.ChaincodeStub, args []string) ([]byte
 		_ = json.Unmarshal(votesbytes, &votesstruct)
 
 		for a := 0; a < len(votesstruct); a++ {
-			storedVal, _ := stub.GetState(votesstruct[a].Candidate)
+			storedVal, _ := stub.GetState(strings.Replace(votesstruct[a].Candidate, " ", "_", -1))
 			votesstruct[a].Votes, _ = strconv.Atoi(string(storedVal))
 			break
 		}
@@ -256,8 +256,8 @@ func (t *votingcode) getresults(stub *shim.ChaincodeStub, args []string) ([]byte
 		_ = json.Unmarshal(votesbytes, &votesstruct)
 
 		for a := 0; a < len(votesstruct); a++ {
-			yStoredVal, _ := stub.GetState(votesstruct[a].Proposal + "-Y")
-			nStoredVal, _ := stub.GetState(votesstruct[a].Proposal + "-N")
+			yStoredVal, _ := stub.GetState(strings.Replace(votesstruct[a].Proposal+"-Y", " ", "_", -1))
+			nStoredVal, _ := stub.GetState(strings.Replace(votesstruct[a].Proposal+"-N", " ", "_", -1))
 			votesstruct[a].Yesvote, _ = strconv.Atoi(string(yStoredVal))
 			votesstruct[a].Novote, _ = strconv.Atoi(string(nStoredVal))
 			break
