@@ -123,14 +123,16 @@ func (t *votingcode) vote(stub *shim.ChaincodeStub, function string, args []stri
 					val, _ := strconv.Atoi(string(storedVal))
 					val++
 					stub.PutState(strings.Replace(args[1], " ", "_", -1), []byte(strconv.Itoa(val)))
+				} else {
+					stub.PutState(strings.Replace(args[1], " ", "_", -1), []byte(strconv.Itoa(1)))
 				}
 				break
 			}
 		}
 
-		barray, _ := json.Marshal(votesstruct)
+		//barray, _ := json.Marshal(votesstruct)
 
-		stub.PutState("votes", barray)
+		//stub.PutState("votes", barray)
 	} else {
 		votesbytes, err := stub.GetState("proposals")
 		if err != nil {
@@ -151,14 +153,16 @@ func (t *votingcode) vote(stub *shim.ChaincodeStub, function string, args []stri
 					val, _ := strconv.Atoi(string(storedVal))
 					val++
 					stub.PutState(args[1]+"-"+args[2], []byte(strconv.Itoa(val)))
+				} else {
+					stub.PutState(args[1]+"-"+args[2], []byte(strconv.Itoa(1)))
 				}
 				break
 			}
 		}
 
-		barray, _ := json.Marshal(votesstruct)
+		//barray, _ := json.Marshal(votesstruct)
 
-		stub.PutState("votes", barray)
+		//stub.PutState("votes", barray)
 	}
 	return nil, nil
 }
