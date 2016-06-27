@@ -107,6 +107,15 @@ func (t *votingcode) vote(stub *shim.ChaincodeStub, function string, args []stri
 
 	vtype, _ := stub.GetState("votetype")
 
+	uservotes, _ := stub.GetState(args[0] + "-" + "votecount")
+
+	if len(string(uservotes)) > 0 {
+		votingAttempt, _ := strconv.Atoi(string(uservotes))
+		votingAttempt++
+		stub.PutState(args[0]+"-"+"votecount", []byte(strconv.Itoa(votingAttempt)))
+		return nil, errors.New("Duplicate voting attempt" + strconv.Itoa(votingAttempt))
+	}
+
 	if string(vtype) == "G" {
 
 		votesbytes, err := stub.GetState("candidates")
@@ -115,6 +124,7 @@ func (t *votingcode) vote(stub *shim.ChaincodeStub, function string, args []stri
 		}
 		var votesstruct []candidates
 		_ = json.Unmarshal(votesbytes, &votesstruct)
+
 		for a := 0; a < len(votesstruct); a++ {
 			if votesstruct[a].Candidate == args[1] {
 				votesstruct[a].Votes = votesstruct[a].Votes + 1
