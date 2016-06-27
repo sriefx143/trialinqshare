@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
@@ -113,6 +114,12 @@ func (t *votingcode) vote(stub *shim.ChaincodeStub, function string, args []stri
 		for a := 0; a < len(votesstruct); a++ {
 			if votesstruct[a].Candidate == args[1] {
 				votesstruct[a].Votes = votesstruct[a].Votes + 1
+				storedVal, _ := stub.GetState(args[1])
+				if len(string(storedVal)) > 0 {
+					val, _ := strconv.Atoi(string(storedVal))
+					val++
+					stub.PutState(args[1], []byte(strconv.Itoa(val)))
+				}
 				break
 			}
 		}
@@ -135,6 +142,12 @@ func (t *votingcode) vote(stub *shim.ChaincodeStub, function string, args []stri
 					votesstruct[a].Novote += 1
 				}
 
+				storedVal, _ := stub.GetState(args[1] + "-" + args[2])
+				if len(string(storedVal)) > 0 {
+					val, _ := strconv.Atoi(string(storedVal))
+					val++
+					stub.PutState(args[1]+"-"+args[2], []byte(strconv.Itoa(val)))
+				}
 				break
 			}
 		}
@@ -217,9 +230,31 @@ func (t *votingcode) getresults(stub *shim.ChaincodeStub, args []string) ([]byte
 	barr, _ := stub.GetState("votetype")
 	if string(barr) == "G" {
 		votesbytes, err := stub.GetState("candidates")
+		var votesstruct []candidates
+		_ = json.Unmarshal(votesbytes, &votesstruct)
+
+		for a := 0; a < len(votesstruct); a++ {
+			storedVal, _ := stub.GetState(votesstruct[a].Candidate)
+			votesstruct[a].Votes, _ = strconv.Atoi(string(storedVal))
+			break
+		}
+		votesbytes, _ = json.Marshal(votesstruct)
+
 		return votesbytes, err
 	} else if string(barr) == "P" {
 		votesbytes, err := stub.GetState("proposals")
+		var votesstruct []proposition
+		_ = json.Unmarshal(votesbytes, &votesstruct)
+
+		for a := 0; a < len(votesstruct); a++ {
+			yStoredVal, _ := stub.GetState(votesstruct[a].Proposal + "-Y")
+			nStoredVal, _ := stub.GetState(votesstruct[a].Proposal + "-N")
+			votesstruct[a].Yesvote, _ = strconv.Atoi(string(yStoredVal))
+			votesstruct[a].Novote, _ = strconv.Atoi(string(nStoredVal))
+			break
+		}
+
+		votesbytes, _ = json.Marshal(votesstruct)
 		return votesbytes, err
 	}
 	return nil, errors.New("unable to resolve between candidate voting and proposal")
