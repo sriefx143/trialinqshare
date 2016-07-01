@@ -288,7 +288,7 @@ func (t *ShareInfoCode) writeB(stub *shim.ChaincodeStub, args []string) ([]byte,
 	var sharewith = args[1]
 	var mydata []string = strings.Split(args[2], "|")
 	var sharedon = args[3]
-	var res1 = inqinfoshare{sharewith, mydata, sharedon}
+	var res1 = inqinfoshare{sharewith, mydata, sharedon, args[5]}
 
 	//get the current state data first
 	bytesofdata, _ := stub.GetState(args[0] + "-shareinfo")
@@ -369,8 +369,8 @@ func (t *ShareInfoCode) writeC(stub *shim.ChaincodeStub, args []string) ([]byte,
 	var sharewith = args[1]
 	var mydata []string = strings.Split(args[2], "|")
 	var sharedon = args[3]
-	var r1 = inqinfoshare{sharewith, mydata, sharedon}
-	var r2 = inqinfoshare{sharewith, mydata, sharedon}
+	var r1 = inqinfoshare{sharewith, mydata, sharedon, args[5]}
+	var r2 = inqinfoshare{sharewith, mydata, sharedon, args[5]}
 	var res1 [2]inqinfoshare
 	res1[0] = r1
 	res1[1] = r2
@@ -421,7 +421,7 @@ func (t *ShareInfoCode) writesingle(stub *shim.ChaincodeStub, args []string) ([]
 	var sharewith = args[1]
 	var mydata []string = strings.Split(args[2], "|")
 	var sharedon = args[3]
-	var res1 = inqinfoshare{sharewith, mydata, sharedon}
+	var res1 = inqinfoshare{sharewith, mydata, sharedon, args[5]}
 	bytestostore, _ := json.Marshal(res1)
 	_ = stub.PutState(user+"-shareinfo", bytestostore)
 
