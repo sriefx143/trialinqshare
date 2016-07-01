@@ -18,9 +18,10 @@ import (
 
 //this struct will be used by consumer  allowing inquiry
 type inqinfoshare struct {
-	Withentity string   `json:"withentity"`
-	Mydata     []string `json:"mydata"`
-	ShareDate  string   `json:"sharedate"`
+	Withentity   string   `json:"withentity"`
+	Mydata       []string `json:"mydata"`
+	ShareDate    string   `json:"sharedate"`
+	EndShareDate string   `json:"endsharedate"`
 }
 
 //this struct will be used by consumer entity to read from for inquiry requests
@@ -180,7 +181,8 @@ func (t *ShareInfoCode) write(stub *shim.ChaincodeStub, args []string) ([]byte, 
 	var sharewith = args[1]
 	var mydata []string = strings.Split(args[2], "|")
 	var sharedon = args[3]
-	var res1 = inqinfoshare{sharewith, mydata, sharedon}
+	var endshare = args[5]
+	var res1 = inqinfoshare{sharewith, mydata, sharedon, endshare}
 	bytestostore, _ := json.Marshal(res1)
 
 	bytesofdata, _ := stub.GetState(user + "-shareinfo")
