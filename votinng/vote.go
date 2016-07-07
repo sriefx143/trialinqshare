@@ -152,13 +152,14 @@ func (t *votingcode) vote(stub *shim.ChaincodeStub, function string, args []stri
 		_ = json.Unmarshal(votesbytes, &votesstruct)
 		for a := 0; a < len(votesstruct); a++ {
 			if votesstruct[a].Proposal == args[1] {
-				if args[2] == "Y" {
-					votesstruct[a].Yesvote += 1
-				} else {
-					votesstruct[a].Novote += 1
-				}
 
-				storedVal, _ := stub.GetState(args[1] + "-" + args[2])
+				///if args[2] == "Y" {
+				///votesstruct[a].Yesvote += 1
+				///} else {
+				///votesstruct[a].Novote += 1
+				///}
+
+				storedVal, _ := stub.GetState(strings.Replace(args[1], " ", "_", -1) + "-" + args[2])
 				if len(string(storedVal)) > 0 {
 					val, _ := strconv.Atoi(string(storedVal))
 					val++
